@@ -72,19 +72,26 @@
           </div>
         </div>
         <div class="col-6">
-          <div class="row"  v-for="item,key in game.player" :key="item">
-            <div class="w-100" style="position:relative;height:3rem" v-if="key != playername">
-              <span>{{key}}</span>
-                <div
-              class="card"
-              v-for="(card, index) in item.cards"
-              :key="card"
-              :style="{
-                transform:
-                  'translate('+(8+ 0.5 * index) +'rem,    1.5rem)',
-              }"
+          <h1 style="margin-top: -3rem; margin-bottom: 3rem">
+            順序：<span v-if="game.order">↓</span><span v-else>↑</span>
+          </h1>
+          <div class="row" v-for="(item, key) in game.player" :key="item">
+            <div
+              class="w-100"
+              style="position: relative; height: 3rem"
+              v-if="key != playername"
             >
-              <div class="back"></div>
+              <span>{{ key }}</span>
+              <div
+                class="card"
+                v-for="(card, index) in item.cards"
+                :key="card"
+                :style="{
+                  transform:
+                    'translate(' + (8 + 0.5 * index) + 'rem,    1.5rem)',
+                }"
+              >
+                <div class="back"></div>
               </div>
             </div>
           </div>
@@ -109,7 +116,7 @@
               class="btn btn-danger"
               @click="quit()"
               v-if="player.myturn"
-              style="margin-left:-120px"
+              style="margin-left: -120px"
             >
               投降
             </button>
@@ -143,7 +150,7 @@ export default {
       player: new Card.Player(),
       cards: [],
       deadwoodcards: [],
-      loading: false,
+      loading: true,
       message: "",
     };
   },
@@ -426,18 +433,28 @@ export default {
 
       Array.prototype.push.apply(this.game.deck.deadwood, this.player.cards);
       this.game.playername.forEach((i) => {
-        player[i] = {
-          cards:
-            typeof this.game.player[i].cards === "undefined"
-              ? []
-              : this.game.player[i].cards,
-          gameover: this.game.player[i].gameover,
-          myturn: this.game.player[i].myturn,
-          role: this.game.player[i].role,
-        };
+        if (i != this.playername) {
+          player[i] = {
+            cards:
+              typeof this.game.player[i].cards === "undefined"
+                ? []
+                : this.game.player[i].cards,
+            gameover: this.game.player[i].gameover,
+            myturn: this.game.player[i].myturn,
+            role: this.game.player[i].role,
+          };
+        } else {
+          player[i] = {
+            cards: [],
+            gameover: true,
+            myturn: false,
+            role: this.game.player[i].role,
+          };
+        }
       });
-      player[this.playername].cards = [];
-      player[this.playername].gameover = true;
+      this.game.player[this.playername].cards = [];
+      this.game.player[this.playername].gameover = true;
+      this.game.player[this.playername].myturn = false;
 
       var deck = {
         cards: this.game.deck.cards,
@@ -554,14 +571,7 @@ export default {
       }
     },
   },
-  mounted() {
-    // var $container = document.getElementById("container");
-    // create Deck
-    // add to DOM
-    window.onload = () => {
-      this.loading = true;
-    };
-  },
+  mounted() {},
 };
 </script>
 

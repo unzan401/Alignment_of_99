@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import index from '/views/Home.vue'
 import admin from '/views/Admin.vue'
+import api from '/views/Api.vue'
 
 const routes = [
   {
@@ -22,7 +23,12 @@ const routes = [
     path: '/',
     name: 'index',
     component: index
-  }
+  },
+  {
+    path: '/api/',
+    name: 'api',
+    component: api
+  },
 
 ]
 
