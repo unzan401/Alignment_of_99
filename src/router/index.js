@@ -22,7 +22,7 @@ const routes = [
   {
     path: '/',
     name: 'index',
-    component: index
+    component: admin
   },
   {
     path: '/api/',

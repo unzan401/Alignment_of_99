@@ -1,18 +1,332 @@
 <template>
-  <div class="Index" v-if="loading">
-    <div class="container" id="containers" style="position: relative">
-      <div class="row">
-        <h5>
-          玩家：{{ playername }}、現在點數：{{ game.point }}、已選取點數：{{
-            chosepoint
-          }}
-        </h5>
+  <div class="Index">
+    <div
+      class="layout container"
+      style="position: relative"
+      v-if="gameover == false"
+    >
+      <div class="row" style="height: 3rem; margin-top: 3.5rem">
+        <div
+          class="col-12"
+          style="position: relative; justify-content: center; display: flex"
+        >
+          <div style="width: 12rem; position: relative">
+            <div
+              class="card"
+              v-for="i in publicData.deckLength"
+              :key="i"
+              :style="{
+                transform:
+                  'translate(' +
+                  (3 + -0.01 * i) +
+                  'rem , ' +
+                  -0.01 * i +
+                  'rem)',
+              }"
+            >
+              <div class="back"></div>
+            </div>
+            <card
+              v-for="(card, index) in deadwoodcards"
+              :key="card"
+              :rank="card.rank"
+              :suit="card.suit"
+              :class="card.chose"
+              :style="{
+                transform:
+                  'translate(' +
+                  (9 + -0.01 * index) +
+                  'rem , ' +
+                  -0.01 * index +
+                  'rem)',
+              }"
+            />
+          </div>
+        </div>
       </div>
       <div
-        class="row align-items-center"
-        style="margin-bottom: 4rem; height: 3rem"
+        class="row d-none d-lg-flex"
+        v-if="playerList != false"
+        :class="{ 'd-none d-lg-flex': playerList.length > 4 }"
       >
-        <div class="col-12" v-if="player.myturn">
+        <div class="col playerState" v-for="item in playerList" :key="item">
+          <div
+            class="row"
+            :class="{
+              playerActive: publicData.player[publicData.number] == item,
+            }"
+            style="position: relative"
+          >
+            <div class="col-12">
+              <div>{{ item }}</div>
+              <div>{{ publicData.playerState[item].role }}</div>
+            </div>
+            <div
+              class="col-12"
+              style="position: relative; height: 4rem; overflow: hidden"
+            >
+              <div
+                class="card"
+                v-for="i in publicData.playerState[item].handLength"
+                :key="i"
+                :style="{
+                  transform: 'translate(' + (2.5 + 0.5 * i) + 'rem,    3rem)',
+                }"
+              >
+                <div class="back"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 超過5名玩家的UI處理 -->
+      <div
+        class="row d-lg-none justify-content-between"
+        v-if="(playerList != false) & (playerList.length > 4)"
+        :class="{ 'd-none d-md-flex': playerList.length > 6 }"
+      >
+        <div
+          class="col playerState"
+          v-for="item in playerList.filter((i, index) => {
+            return (index > 0) & (index < playerList.length - 1);
+          })"
+          :key="item"
+        >
+          <div
+            class="row"
+            :class="{
+              playerActive: publicData.player[publicData.number] == item,
+            }"
+            style="position: relative"
+          >
+            <div class="col-12">
+              <div>{{ item }}</div>
+              <div>{{ publicData.playerState[item].role }}</div>
+            </div>
+            <div
+              class="col-12"
+              style="position: relative; height: 4rem; overflow: hidden"
+            >
+              <div
+                class="card"
+                v-for="i in publicData.playerState[item].handLength"
+                :key="i"
+                :style="{
+                  transform: 'translate(' + (2.5 + 0.5 * i) + 'rem,    3rem)',
+                }"
+              >
+                <div class="back"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="row d-lg-none justify-content-between"
+        v-if="(playerList != false) & (playerList.length > 4)"
+        :class="{ 'd-none d-md-flex': playerList.length > 6 }"
+      >
+        <div
+          class="col playerState"
+          v-for="item in playerList.filter((i, index) => {
+            return (index == 0) | (index == playerList.length - 1);
+          })"
+          :key="item"
+        >
+          <div
+            class="row"
+            :class="{
+              playerActive: publicData.player[publicData.number] == item,
+            }"
+            style="position: relative"
+          >
+            <div class="col-12">
+              <div>{{ item }}</div>
+              <div>{{ publicData.playerState[item].role }}</div>
+            </div>
+            <div
+              class="col-12"
+              style="position: relative; height: 4rem; overflow: hidden"
+            >
+              <div
+                class="card"
+                v-for="i in publicData.playerState[item].handLength"
+                :key="i"
+                :style="{
+                  transform: 'translate(' + (2.5 + 0.5 * i) + 'rem,    3rem)',
+                }"
+              >
+                <div class="back"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- under md 超過8人 -->
+      <div
+        class="row d-md-none justify-content-between"
+        v-if="(playerList != false) & (playerList.length > 6)"
+      >
+        <div
+          class="col playerState"
+          v-for="item in playerList.filter((i, index) => {
+            return (index > 1) & (index < playerList.length - 2);
+          })"
+          :key="item"
+        >
+          <div
+            class="row"
+            :class="{
+              playerActive: publicData.player[publicData.number] == item,
+            }"
+            style="position: relative"
+          >
+            <div class="col-12">
+              <div>{{ item }}</div>
+              <div>{{ publicData.playerState[item].role }}</div>
+            </div>
+            <div
+              class="col-12"
+              style="position: relative; height: 4rem; overflow: hidden"
+            >
+              <div
+                class="card"
+                v-for="i in publicData.playerState[item].handLength"
+                :key="i"
+                :style="{
+                  transform: 'translate(' + (2.5 + 0.5 * i) + 'rem,    3rem)',
+                }"
+              >
+                <div class="back"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="row d-md-none justify-content-between"
+        v-if="(playerList != false) & (playerList.length > 6)"
+      >
+        <div
+          class="col playerState"
+          v-for="item in playerList.filter((i, index) => {
+            return (index == 1) | (index == playerList.length - 2);
+          })"
+          :key="item"
+        >
+          <div
+            class="row"
+            :class="{
+              playerActive: publicData.player[publicData.number] == item,
+            }"
+            style="position: relative"
+          >
+            <div class="col-12">
+              <div>{{ item }}</div>
+              <div>{{ publicData.playerState[item].role }}</div>
+            </div>
+            <div
+              class="col-12"
+              style="position: relative; height: 4rem; overflow: hidden"
+            >
+              <div
+                class="card"
+                v-for="i in publicData.playerState[item].handLength"
+                :key="i"
+                :style="{
+                  transform: 'translate(' + (2.5 + 0.5 * i) + 'rem,    3rem)',
+                }"
+              >
+                <div class="back"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="row d-md-none justify-content-between"
+        v-if="(playerList != false) & (playerList.length > 6)"
+      >
+        <div
+          class="col playerState"
+          v-for="item in playerList.filter((i, index) => {
+            return (index == 0) | (index == playerList.length - 1);
+          })"
+          :key="item"
+        >
+          <div
+            class="row"
+            :class="{
+              playerActive: publicData.player[publicData.number] == item,
+            }"
+            style="position: relative"
+          >
+            <div class="col-12">
+              <div>{{ item }}</div>
+              <div>{{ publicData.playerState[item].role }}</div>
+            </div>
+            <div
+              class="col-12"
+              style="position: relative; height: 4rem; overflow: hidden"
+            >
+              <div
+                class="card"
+                v-for="i in publicData.playerState[item].handLength"
+                :key="i"
+                :style="{
+                  transform: 'translate(' + (2.5 + 0.5 * i) + 'rem,    3rem)',
+                }"
+              >
+                <div class="back"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-center">
+          <span class="counterclockwise" :class="{ active: publicData.order }"
+            ><img src="/img/clockwise.png" alt="" style="height: 60px"
+          /></span>
+        </p>
+      </div>
+
+      <div
+        class="row"
+        :class="{
+          playerActive: publicData.player[publicData.number] == playername,
+        }"
+        v-if="publicData != false"
+      >
+        <div v-if="alive" class="col-12">
+          <div style="position: relative; height: 6rem">
+            <card
+              v-for="(card, index) in cardParse"
+              :key="card"
+              @update="chooseCard(card)"
+              :rank="card.rank"
+              :suit="card.suit"
+              :class="card.chose"
+              :style="{
+                transform:
+                  'translate(' + (15 * index + 135) + 'px , ' + '3rem)',
+              }"
+            />
+          </div>
+        </div>
+        <h4 v-else>你輸了</h4>
+        <div>{{ playername }}</div>
+        <div>{{ role }}</div>
+        <div>
+          現在點數：{{ publicData.point }}、已選取點數：{{ chosepoint }}
+        </div>
+      </div>
+      <div class="row">
+        <h5>{{ message }}</h5>
+      </div>
+      <div class="row align-items-center">
+        <div class="col-12" v-if="myturn & !watcher">
           <button
             class="btn btn-secondary"
             :disabled="playSituation"
@@ -31,101 +345,75 @@
             >
               {{ item.name }}
             </button>
-            <label style="margin-right: 1rem">{{
-              playOptionView.ability
-            }}</label>
           </div>
+          <label v-if="playOptionView" style="margin-right: 1rem">{{
+            playOptionView.ability
+          }}</label>
         </div>
         <div class="col-12" v-else>
-          <h4>不是你的回合。</h4>
+          <h5>不是你的回合。</h5>
         </div>
+        <div class="col-12" v-if="watcher">正處於觀戰者模式</div>
       </div>
+      <button
+        type="button"
+        class="btn btn-danger"
+        data-bs-toggle="modal"
+        data-bs-target="#giveupModal"
+        v-if="myturn & !watcher"
+      >
+        投降
+      </button>
 
-      <div class="row" style="min-height: 8rem">
-        <div class="col-6">
-          <div style="position: relative">
-            <div
-              class="card"
-              v-for="(card, index) in deck.cards"
-              :key="card"
-              :style="{
-                transform:
-                  'translate(' + -0.05 * index + 'px , ' + -0.2 * index + 'px)',
-              }"
-            >
-              <div class="back"></div>
+      <!-- Modal -->
+      <div
+        class="modal fade"
+        id="giveupModal"
+        tabindex="-1"
+        aria-labelledby="giveupModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-sm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
             </div>
-          </div>
-          <div style="margin-left: 200px; position: relative">
-            <card
-              v-for="(card, index) in deadwoodcards"
-              :key="card"
-              @update="chooseCard(card)"
-              :rank="card.rank"
-              :suit="card.suit"
-              :class="card.chose"
-              :style="{
-                transform:
-                  'translate(' + -0.05 * index + 'px , ' + -0.2 * index + 'px)',
-              }"
-            />
-          </div>
-        </div>
-        <div class="col-6">
-          <h1 style="margin-top: -3rem; margin-bottom: 3rem">
-            順序：<span v-if="game.order">↓</span><span v-else>↑</span>
-          </h1>
-          <div class="row" v-for="(item, key) in game.player" :key="item">
-            <div
-              class="w-100"
-              style="position: relative; height: 3rem"
-              v-if="key != playername"
-            >
-              <span>{{ key }}</span>
-              <div
-                class="card"
-                v-for="(card, index) in item.cards"
-                :key="card"
-                :style="{
-                  transform:
-                    'translate(' + (8 + 0.5 * index) + 'rem,    1.5rem)',
-                }"
+            <div class="modal-body">是否確定投降？</div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
               >
-                <div class="back"></div>
-              </div>
+                取消
+              </button>
+              <button
+                type="button"
+                class="btn btn-danger"
+                data-bs-dismiss="modal"
+                @click="giveup()"
+              >
+                投降
+              </button>
             </div>
           </div>
         </div>
       </div>
-      <div class="row" style="height: 4rem">
-        <h4 v-if="player.gameover">你輸了</h4>
-        <div v-else class="col-12">
-          <div style="margin-left: 100px; position: relative">
-            <card
-              v-for="(card, index) in cards"
-              :key="card"
-              @update="chooseCard(card)"
-              :rank="card.rank"
-              :suit="card.suit"
-              :class="card.chose"
-              :style="{
-                transform: 'translate(' + 20 * index + 'px , ' + 0 + 'px)',
-              }"
-            />
-            <button
-              class="btn btn-danger"
-              @click="quit()"
-              v-if="player.myturn"
-              style="margin-left: -120px"
-            >
-              投降
-            </button>
-          </div>
-        </div>
-      </div>
-      <div class="row">
-        <h5>{{ message }}</h5>
-      </div>
+    </div>
+
+    <div class="layout container" style="position: relative" v-else>
+      <button type="button" class="btn btn-primary" @click="restart()">
+        重開一局
+      </button>
+      <h5>遊戲結束，{{ winner }}陣營勝利。</h5>
+      <h5 v-for="(item, key) in publicData.playerState" :key="item">
+        {{ key }}、陣營為{{ item.role }}
+      </h5>
     </div>
   </div>
 </template>
@@ -143,188 +431,86 @@ export default {
   },
   data: () => {
     return {
-      game: new Card.Game(),
       chosecards: [],
-      playername: "",
-      deck: Card.setDeck(2),
-      player: new Card.Player(),
+      playername: null,
+      playerList: false,
+      publicData: false,
       cards: [],
       deadwoodcards: [],
-      loading: true,
       message: "",
+      myturn: false,
+      alive: true,
+      role: null,
+      cardParse: [],
+      gameover: false,
+      winner: null,
+      watcher: false,
     };
   },
   created() {
     var api = "data/" + this.$route.params.time + "/";
-    async function startGame(time) {
-      var res = await new Card.Game(time);
-      return res;
-    }
-    startGame(this.$route.params.time).then((res) => {
-      this.game = res;
-      firebase
-        .database()
-        .ref(api + "point")
-        .on("value", (snapshot) => {
-          var data = snapshot.val();
-          this.game.point = data;
-        });
-
-      var ref = firebase.database().ref(api);
-      async function getvalue() {
-        var snapshot = await ref.once("value");
-        return snapshot.val();
-      }
-      getvalue().then((res) => {
-        var data = res;
-        this.game.deck = data.deck;
-        this.playername = res.playername[this.$route.params.user];
-        this.player.gameover = data.player[this.playername].gameover;
-        this.player.myturn = data.player[this.playername].myturn;
-        var player = {};
-        if (this.player.gameover & this.player.myturn) {
-          this.nextPlayer();
-
-          this.game.playername.forEach((i) => {
-            player[i] = {
-              cards:
-                typeof this.game.player[i].cards === "undefined"
-                  ? []
-                  : this.game.player[i].cards,
-              gameover: this.game.player[i].gameover,
-              myturn: this.game.player[i].myturn,
-              role: this.game.player[i].role,
-            };
-          });
-          firebase
-            .database()
-            .ref(api + "/player/")
-            .update(player);
+    firebase
+      .database()
+      .ref(api + "public/")
+      .once("value", (snapshot) => {
+        this.publicData = snapshot.val();
+        if (typeof this.$route.params.user == "undefined") {
+          // 觀戰者模式
+          this.playername = this.publicData.player[this.publicData.number];
+          this.watcher = true;
+        } else {
+          this.playername = this.publicData.player[this.$route.params.user];
         }
+        this.playerList = this.publicData.player;
+        this.playerList = this.playerList
+          .splice(this.playerList.indexOf(this.playername))
+          .splice(1);
+        Array.prototype.push.apply(this.playerList, this.publicData.player);
 
-        this.player.role = data.player[this.playername].role;
-        this.player.cards = data.player[this.playername].cards;
-        if (typeof data.deck.deadwood === "undefined") {
-          data.deck.deadwood = [];
-        }
-
-        this.deadwoodcards = data.deck.deadwood.map((i) => {
-          return Card.parseCard(i);
-        });
-
-        if (typeof this.player.cards == "undefined") {
-          this.player.cards = [];
-          if (this.player.myturn) {
-            this.nextPlayer();
-            this.player.gameover = true;
-            this.game.playername.forEach((i) => {
-              player[i] = {
-                cards:
-                  typeof this.game.player[i].cards === "undefined"
-                    ? []
-                    : this.game.player[i].cards,
-                gameover: this.game.player[i].gameover,
-                myturn: this.game.player[i].myturn,
-                role: this.game.player[i].role,
-              };
-            });
-            firebase
-              .database()
-              .ref(api + "/player/")
-              .update(player);
-          }
-        }
-        this.cards = this.player.cards.map((i) => {
-          return Card.parseCard(i);
-        });
-        if (typeof data.deck.deadwood === "undefined") {
-          data.deck.deadwood = [];
-        }
-        this.deadwoodcards = data.deck.deadwood.map((i) => {
-          return Card.parseCard(i);
-        });
-        data.playername.forEach((i) => {
-          this.game.player[i].cards = data.player[i].cards;
-          this.game.player[i].gameover = data.player[i].gameover;
-          this.game.player[i].myturn = data.player[i].myturn;
-        });
+        this.playerList = this.playerList.reverse();
+      })
+      .then(() => {
         firebase
           .database()
-          .ref(api)
+          .ref(api + "public/")
           .on("value", (snapshot) => {
-            var data = snapshot.val();
-            this.game.deck = data.deck;
-            this.player.cards = data.player[this.playername].cards;
-            this.player.gameover = data.player[this.playername].gameover;
-            this.player.myturn = data.player[this.playername].myturn;
-            this.player.role = data.player[this.playername].role;
-            this.game.order = data.order;
-            if (typeof this.player.cards == "undefined") {
-              this.player.cards = [];
-              if (this.player.myturn) {
-                this.nextPlayer();
-                this.player.gameover = true;
-                this.game.playername.forEach((i) => {
-                  player[i] = {
-                    cards:
-                      typeof this.game.player[i].cards === "undefined"
-                        ? []
-                        : this.game.player[i].cards,
-                    gameover: this.game.player[i].gameover,
-                    myturn: this.game.player[i].myturn,
-                    role: this.game.player[i].role,
-                  };
-                });
-                firebase
-                  .database()
-                  .ref(api + "/player/")
-                  .update(player);
-              }
+            this.publicData = snapshot.val();
+            this.myturn =
+              this.publicData.player[this.publicData.number] == this.playername;
+            this.alive = this.publicData.playerState[this.playername].alive;
+
+            this.gameover = this.publicData.gameover;
+            if (this.gameover) {
+              this.winner = this.publicData.winner;
             }
-            this.cards = this.player.cards.map((i) => {
+            this.deadwoodcards =
+              typeof this.publicData.deadwood == "undefined"
+                ? []
+                : this.publicData.deadwood.map((i) => {
+                    return Card.parseCard(i);
+                  });
+          });
+        firebase
+          .database()
+          .ref(api + "private/")
+          .on("value", (snapshot) => {
+            this.cards =
+              typeof snapshot.val().playerHand[this.playername] == "undefined"
+                ? []
+                : snapshot.val().playerHand[this.playername];
+            this.cardParse = this.cards.map((i) => {
               return Card.parseCard(i);
             });
-            if (typeof data.deck.deadwood === "undefined") {
-              data.deck.deadwood = [];
-            }
-            this.deadwoodcards = data.deck.deadwood.map((i) => {
-              return Card.parseCard(i);
-            });
-            data.playername.forEach((i) => {
-              this.game.player[i].cards = data.player[i].cards;
-              this.game.player[i].gameover = data.player[i].gameover;
-              this.game.player[i].myturn = data.player[i].myturn;
-            });
+            this.chosecards = [];
+            this.role = snapshot.val().playerState[this.playername].role;
           });
       });
-    });
-  },
-  updated() {
-    var api = "data/" + this.$route.params.time + "/";
-    if (this.player.gameover & this.player.myturn) {
-      this.nextPlayer();
-      var player = {};
-      this.game.playername.forEach((i) => {
-        player[i] = {
-          cards:
-            typeof this.game.player[i].cards === "undefined"
-              ? []
-              : this.game.player[i].cards,
-          gameover: this.game.player[i].gameover,
-          myturn: this.game.player[i].myturn,
-          role: this.game.player[i].role,
-        };
-      });
-      firebase
-        .database()
-        .ref(api + "/player/")
-        .update(player);
-    }
   },
   computed: {
     chosepoint: function () {
       return Card.chosePoint(this.chosecards);
     },
+
     ability: function () {
       var dict = {
         4: "迴轉",
@@ -343,7 +529,7 @@ export default {
           //檢查是不是特殊牌
           return false;
         } else {
-          if (this.chosecards[0].rank + this.game.point <= 99) {
+          if (this.chosecards[0].rank + this.publicData.point <= 99) {
             return false;
           }
         }
@@ -360,10 +546,11 @@ export default {
       return true;
     },
     playOptionPlayers: function () {
-      return this.game.playername.map((i) => {
+      return this.publicData.player.map((i) => {
         return {
           name: i,
-          disabled: i == this.playername,
+          disabled:
+            (i == this.playername) | !this.publicData.playerState[i].alive,
         };
       });
     },
@@ -390,11 +577,11 @@ export default {
             selections: [
               {
                 name: "+10",
-                disabled: this.game.point + 10 > 99,
+                disabled: this.publicData.point + 10 > 99,
               },
               {
                 name: "-10",
-                disabled: this.game.point - 10 < 0,
+                disabled: this.publicData.point - 10 < 0,
               },
             ],
           };
@@ -404,11 +591,11 @@ export default {
             selections: [
               {
                 name: "+20",
-                disabled: this.game.point + 20 > 99,
+                disabled: this.publicData.point + 20 > 99,
               },
               {
                 name: "-20",
-                disabled: this.game.point - 20 < 0,
+                disabled: this.publicData.point - 20 < 0,
               },
             ],
           };
@@ -423,137 +610,35 @@ export default {
     },
   },
   methods: {
-    quit() {
-      this.nextPlayer();
-      var api = "data/" + this.$route.params.time + "/";
-      var player = {};
-      if (typeof this.game.deck.deadwood === "undefined") {
-        this.game.deck.deadwood = [];
-      }
-
-      Array.prototype.push.apply(this.game.deck.deadwood, this.player.cards);
-      this.game.playername.forEach((i) => {
-        if (i != this.playername) {
-          player[i] = {
-            cards:
-              typeof this.game.player[i].cards === "undefined"
-                ? []
-                : this.game.player[i].cards,
-            gameover: this.game.player[i].gameover,
-            myturn: this.game.player[i].myturn,
-            role: this.game.player[i].role,
-          };
-        } else {
-          player[i] = {
-            cards: [],
-            gameover: true,
-            myturn: false,
-            role: this.game.player[i].role,
-          };
-        }
-      });
-      this.game.player[this.playername].cards = [];
-      this.game.player[this.playername].gameover = true;
-      this.game.player[this.playername].myturn = false;
-
-      var deck = {
-        cards: this.game.deck.cards,
-        deadwood: this.game.deck.deadwood,
-      };
-
-      firebase
-        .database()
-        .ref(api + "/player/")
-        .update(player);
-
-      firebase
-        .database()
-        .ref(api + "/deck/")
-        .update(deck);
+    restart() {
+      var time = this.$route.params.time;
+      var game = new Card.Game(time);
+      var Ref = game.newGame(this.publicData.player);
+      firebase.database().ref("data").update(Ref);
     },
-    plusPoint(rank) {
-      this.game.point = this.game.point + parseInt(rank);
+    giveup() {
+      async function connectDb(time) {
+        var game = new Card.Game(time);
+        await game.connectDb();
+        return game;
+      }
+      connectDb(this.$route.params.time).then((game) => {
+        game.giveup(this.playername);
+      });
     },
     play(selection) {
-      if (this.chosecards.length != 0) {
-        var card = this.chosecards.map((i) => {
-          return Card.parseCard(i, true);
-        });
-        var api = "data/" + this.$route.params.time + "/";
-        var point = this.player.play(
-          card,
-          this.game.deck,
-          this.game.point,
-          selection
-        );
-        switch (point[1]) {
-          case "joker":
-            this.message +=
-              selection + "的陣營是" + this.game.player[selection].role + "；";
+      async function connectDb(time) {
+        var game = new Card.Game(time);
+        await game.connectDb();
+        return game;
+      }
+      connectDb(this.$route.params.time).then((game) => {
+        var message = game.play(this.playername, this.chosecards, selection);
+        this.chosecards = [];
+        this.message += message;
+      });
+    },
 
-            this.nextPlayer();
-            break;
-          case 4:
-            this.game.order = !this.game.order;
-            this.nextPlayer();
-            break;
-          case 5:
-            this.game.player[selection].myturn = true;
-            this.game.player[this.playername].myturn = false;
-            break;
-          case 7:
-            var temp = this.game.player[this.playername].cards;
-            this.game.player[this.playername].cards =
-              this.game.player[selection].cards;
-            this.game.player[selection].cards = temp;
-            this.nextPlayer();
-            break;
-          case 9:
-            this.game.player[this.playername].cards.push(
-              this.game.player[selection].cards.pop()
-            );
-            this.nextPlayer();
-            break;
-          default:
-            this.nextPlayer();
-            break;
-        }
-        var deck = this.game.deck;
-        var order = this.game.order;
-        var player = {};
-        this.game.playername.forEach((i) => {
-          player[i] = {
-            cards:
-              typeof this.game.player[i].cards === "undefined"
-                ? []
-                : this.game.player[i].cards,
-            gameover: this.game.player[i].gameover,
-            myturn: this.game.player[i].myturn,
-            role: this.game.player[i].role,
-          };
-        });
-        var data = {
-          deck: deck,
-          order: order,
-          player: player,
-          point: point[0],
-        };
-        firebase.database().ref(api).update(data);
-      }
-      this.chosecards = [];
-    },
-    nextPlayer() {
-      this.game.player[this.playername].myturn = false;
-      var namelist = Array.from(this.game.playername);
-      if (this.game.order) {
-        namelist.push(namelist.shift());
-      } else {
-        namelist.unshift(namelist.pop());
-      }
-      this.game.player[
-        namelist[this.game.playername.indexOf(this.playername)]
-      ].myturn = true;
-    },
     chooseCard(card) {
       if (card.chose == "chose") {
         this.chosecards.splice(this.chosecards.indexOf(card), 1);
@@ -577,9 +662,10 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.card:before,
-.card:after {
-  font-size: 0.65rem !important;
+@media (max-width: 992px) {
+  .playerState {
+    max-width: 150px;
+  }
 }
 
 .card.chose {
@@ -588,5 +674,16 @@ export default {
 
 .btn {
   margin: 3px;
+}
+
+.counterclockwise.active img {
+  -moz-transform: scaleY(-1);
+  -webkit-transform: scaleY(-1);
+  -o-transform: scaleY(-1);
+  transform: scaleY(-1);
+}
+
+.playerActive {
+  background-color: #ddff9d;
 }
 </style>
