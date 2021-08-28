@@ -22,22 +22,22 @@
         <tbody>
           <tr v-for="(item, index) in list" :key="item">
             <td>
-              <a href="#" @click="deleteGame(item)">刪除</a>
+              <router-link to="#" @click="deleteGame(item)">刪除</router-link>
             </td>
             <td>
-              <a v-bind:href="'/game/' + item" target="_blank">
+              <router-link :to="{ name: 'game', params: { time: item}}" target="_blank">
                 {{ item }}
-              </a>
+              </router-link>
             </td>
             <td v-if="!state[index]">進行中</td>
             <td v-else>已結束</td>
             <td>
-              <a
-                v-bind:href="'/game/' + item + '/' + index"
+              <router-link
+                :to="{ name: 'gameUser', params: { time: item,user:index}}"
                 :key="player"
                 v-for="(player, index) in players[index]"
                 target="_blank"
-                >{{ player }}</a
+                >{{ player }}</router-link
               >
             </td>
           </tr>
