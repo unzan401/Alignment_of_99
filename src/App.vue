@@ -7,7 +7,7 @@
           class="navbar-brand"
           to="/"
           style="font-family: 'Noto Serif TC', serif"
-          ><img src="/favicon.ico" alt="LOGO" style="width:30px">{{ Title }}</router-link
+          ><img src="/Alignment_of_99/favicon.ico" alt="LOGO" style="width:30px">{{ Title }}</router-link
         >
         <span v-if="typeof $route.params.time !='undefined'">房間編號：{{ $route.params.time }}</span>
       </div>
