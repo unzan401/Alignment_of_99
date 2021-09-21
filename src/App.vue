@@ -16,7 +16,7 @@
   </header>
 
   <!-- Begin page content -->
-  <div style="padding-top: 70px">
+  <div style="padding-top: 75px">
     <router-view />
   </div>
 </template>

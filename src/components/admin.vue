@@ -25,7 +25,10 @@
               <router-link to="#" @click="deleteGame(item)">刪除</router-link>
             </td>
             <td>
-              <router-link :to="{ name: 'game', params: { time: item}}" target="_blank">
+              <router-link
+                :to="{ name: 'game', params: { time: item } }"
+                target="_blank"
+              >
                 {{ item }}
               </router-link>
             </td>
@@ -33,7 +36,7 @@
             <td v-else>已結束</td>
             <td>
               <router-link
-                :to="{ name: 'gameUser', params: { time: item,user:index}}"
+                :to="{ name: 'gameUser', params: { time: item, user: index } }"
                 :key="player"
                 v-for="(player, index) in players[index]"
                 target="_blank"
@@ -75,7 +78,7 @@
               v-model="newPlayerList[i - 1]"
               :placeholder="i + '號玩家'"
             />
-            <p>{{errormessage}}</p>
+            <p>{{ errormessage }}</p>
           </div>
           <div class="modal-footer justify-content-between">
             <button
@@ -85,13 +88,7 @@
             >
               取消
             </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-
-            >
-              送出
-            </button>
+            <button type="submit" class="btn btn-primary">送出</button>
           </div>
         </form>
       </div>
@@ -113,7 +110,7 @@ export default {
       state: [],
       players: [],
       newPlayerList: [],
-      errormessage:null
+      errormessage: null,
     };
   },
   created() {
@@ -135,13 +132,13 @@ export default {
   methods: {
     newGame(newPlayerList) {
       if (Object.values(newPlayerList).length <= 2) {
-        this.errormessage="至少需要三名玩家"
-        return false
+        this.errormessage = "至少需要三名玩家";
+        return false;
       } else {
-        this.game=new Card.Game()
+        this.game = new Card.Game();
         var Ref = this.game.newGame(Object.values(newPlayerList));
         firebase.database().ref("data").update(Ref);
-        return true
+        return true;
       }
     },
     deleteGame(time) {

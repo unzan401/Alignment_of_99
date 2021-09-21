@@ -24,8 +24,27 @@ class Game {
 				});
 			});
 	}
-
-	newGame(player = ["Alice", "Bob","Cat","Dobby","Elise","Fox","Gary","Hank"]) {
+	connectMsgDb() {
+		return firebase.database().ref("messages/"+this.time+"/").once("value",(snapshot)=>{
+			if (snapshot.val() == null) {
+				this.msglength = 0;
+			} else {
+				this.msglength = snapshot.val().length;
+			}
+		})
+	}
+	newGame(
+		player = [
+			"Alice",
+			"Bob",
+			"Cat",
+			"Dobby",
+			"Elise",
+			"Fox",
+			"Gary",
+			"Hank",
+		]
+	) {
 		var numJoker = 2;
 		this.data = {
 			public: {
@@ -89,9 +108,6 @@ class Game {
 					this.data.public.player[index]
 				].alive;
 			});
-			console.log(alivelist)
-			console.log(alivelist.indexOf("Red"))
-			console.log(alivelist.indexOf(""))
 		if (
 			(alivelist.indexOf("Red") == -1) |
 			(alivelist.indexOf("Black") == -1)
@@ -101,7 +117,9 @@ class Game {
 				this.data.public.playerState[
 					i
 				].handLength = this.data.private.playerHand[i].length;
-				this.data.public.playerState[i].role = this.data.private.playerState[i].role;
+				this.data.public.playerState[
+					i
+				].role = this.data.private.playerState[i].role;
 			});
 			if (alivelist.indexOf("Joker") == -1) {
 				if (alivelist.indexOf("Red") == -1) {
@@ -116,7 +134,9 @@ class Game {
 			} else {
 				this.data.public.winner = "Joker";
 			}
+			this.sendSystemMsg("遊戲結束")
 		}
+		
 	}
 
 	roleGenerate() {
@@ -165,7 +185,7 @@ class Game {
 
 			var value = this.chosePoint(card);
 			var message = "";
-
+			var systemMsg = "";
 			switch (value) {
 				case "joker":
 					message +=
@@ -175,18 +195,20 @@ class Game {
 						"；";
 					this.draw(player);
 					this.nextPlayer();
+					systemMsg = player + "檢查了" + selection + "的陣營";
 					break;
 				case 4:
 					this.data.public.order = !this.data.public.order;
 					this.draw(player);
 					this.nextPlayer();
+					systemMsg = "迴轉";
 					break;
 				case 5:
 					this.data.public.number = this.data.public.player.indexOf(
 						selection
 					);
 					this.draw(player);
-
+					systemMsg = "指定輪到" + selection + "的回合";
 					break;
 				case 7:
 					var temp = this.data.private.playerHand[player];
@@ -194,9 +216,11 @@ class Game {
 						player
 					] = this.data.private.playerHand[selection];
 					this.data.private.playerHand[selection] = temp;
+					systemMsg = player + "和" + selection + "交換所有手牌";
 					// 確認是否有人出局
 					if (this.data.private.playerHand[selection].length == 0) {
 						this.data.public.playerState[selection].alive = false;
+						systemMsg += "，" + selection + "死亡";
 					}
 					this.nextPlayer();
 					break;
@@ -204,10 +228,13 @@ class Game {
 					this.data.private.playerHand[player].push(
 						this.data.private.playerHand[selection].pop()
 					);
+					systemMsg = player + "抽走" + selection + "一張手牌";
 					if (this.data.private.playerHand[selection].length == 0) {
 						this.data.public.playerState[selection].alive = false;
+						systemMsg += "，" + selection + "死亡";
 					}
 					this.nextPlayer();
+
 					break;
 				case 10:
 					if (selection == "+10") {
@@ -244,8 +271,23 @@ class Game {
 					break;
 			}
 			this.update(api, this.data);
+			this.sendSystemMsg(systemMsg);
 			return message;
 		}
+	}
+	sendSystemMsg(msg) {
+		var message;
+		if (msg != "") {
+			message = {
+				user: "系統",
+				text: msg,
+				timestamp: getTime(),
+			};
+			firebase
+			.database()
+			.ref("messages/" + this.time + "/" + this.msglength + "/")
+			.update(message);
+		}		
 	}
 	giveup(player) {
 		this.nextPlayer();
@@ -257,6 +299,7 @@ class Game {
 		this.data.private.playerHand[player] = [];
 
 		var api = "data/" + this.time + "/";
+		this.sendSystemMsg(player+"已經投降了")
 		this.update(api, this.data);
 	}
 	nextPlayer() {
@@ -325,6 +368,12 @@ function parseCard(cardNum, reverse = false) {
 	return reverse
 		? cardNum.rank + suitDict.indexOf(cardNum.suit) * 13 - 1
 		: { rank: (cardNum % 13) + 1, suit: suitDict[parseInt(cardNum / 13)] };
+}
+function getTime() {
+	const now = new Date();
+	const hours = now.getHours();
+	const minutes = now.getMinutes();
+	return `${hours}:${minutes}`;
 }
 
 export { chosePoint, parseCard, shuffle, Game };
