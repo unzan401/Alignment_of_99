@@ -1,5 +1,8 @@
 # alignmentof99
 
+# This is a party card game with standard 52-card deck. 
+
+
 ## Project setup
 ```
 npm install
